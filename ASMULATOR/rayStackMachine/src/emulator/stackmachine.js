@@ -9,8 +9,8 @@ var opcodes = {
     DUPLICATE_LAST_ENTRY: 5,
     ADD_NUM_TO_ADDRESS: 6,
     SUB_NUM_FROM_ADDRESS: 7,
-    GET_ADDRESS_PLUS_ADDRESS: 8,
-    GET_ADDRESS_MINUS_ADDRESS: 9,
+    GET_ADDRESS_PLUS_ADDRESS_VALUE: 8,
+    GET_ADDRESS_MINUS_ADDRESS_VALUE: 9,
     SUB_ADDRESS_FROM_NUMBER_SEND_TO_STACK: 10,
     ADD_ADDRESS_TO_NUMBER_SEND_TO_STACK: 11,
     INCREMENT_ADDRESS: 12,
@@ -77,14 +77,11 @@ function step() { // this simulates the CPU, as long as it doesn't return an err
         case opcodes.MOV_NUM_TO_STACK:
             //read operand one or two numbers
             var input = memory.load(ip+1);
-            var inputTwo = memory.load(ip+2);
-            //execute instruction
-            var value = checkInput(input);
-            var valueTwo = checkInput(inputTwo);
-            //moving value to the stack
+            var value = processResult(checkInput(input));
             memory += value;
-            memory += valueTwo;
-            //updating instruction pointer
+            input = memory.load(ip+2);
+            value = processResult(checkInput(input));
+            memory += value;
             ip += ip+3;
             break;
         case opcodes.DELETE_NUM_FROM_STACK:
@@ -98,70 +95,70 @@ function step() { // this simulates the CPU, as long as it doesn't return an err
         case opcodes.MOV_ADD_TO_STACK:
             var a = memory.load(ip+1);
             var b = memory.load(ip+2);
-            value = checkInput(a+b);
+            value = processResult(checkInput(a+b));
             memory += value;
             ip+=ip+3;
             break;
         case opcodes.MOV_SUB_TO_STACK:
             a = memory.load(ip+1);
             b = memory.load(ip+2);
-            value = checkInput(a-b);
+            value = processResult(checkInput(a-b));
             memory += value;
             ip+=ip+3;
             break;
         case opcodes.ADD_NUM_TO_ADDRESS:
             var inputNumber = memory.load(ip+1);
             var toAddress = memory.load(ip+2);
-            address = memory[checkInput(toAddress)];
-            address += checkInput(inputNumber);
+            value = memory[processResult(checkInput(toAddress))];
+            value += processResult(checkInput(inputNumber));
             ip+=3;
             break;
         case opcodes.SUB_NUM_FROM_ADDRESS:
             inputNumber = memory.load(ip+1);
             toAddress = memory.load(ip+2);
-            address = memory[checkInput(toAddress)];
-            address -= checkInput(inputNumber);
+            value = memory[processResult(checkInput(toAddress))];
+            value -= processResult(checkInput(inputNumber));
             ip+=3;
             break;
-        case opcodes.GET_ADDRESS_PLUS_ADDRESS: // this will add the addressToAdd value to the ADDRESS specified at the 1st operand
+        case opcodes.GET_ADDRESS_PLUS_ADDRESS_VALUE: // this will add the addressToAdd value to the ADDRESS specified at the 1st operand
             var addressToModify = memory.load(ip+1);
             var addressToAdd = memory.load(ip+2);
-            var finalValue = memory[checkInput(addressToModify)];
-            memory[finalValue] += memory[checkInput(addressToAdd)];
+            value = memory[processResult(checkInput(addressToModify))];
+            memory[value] += memory[processResult(checkInput(addressToAdd))];
             ip+=3;
             break;
-        case opcodes.GET_ADDRESS_MINUS_ADDRESS: // this will do the same as above but with subtraction
+        case opcodes.GET_ADDRESS_MINUS_ADDRESS_VALUE: // this will do the same as above but with subtraction
             addressToModify = memory.load(ip+1);
             var addressToSub = memory.load(ip+2);
-            finalValue =  memory[checkInput(addressToModify)];
-            memory[finalValue] -= memory[checkInput(addressToSub)];
+            value =  memory[processResult(checkInput(addressToModify))];
+            memory[value] -= memory[processResult(checkInput(addressToSub))];
             ip+=3;
             break;
         case opcodes.ADD_ADDRESS_TO_NUMBER_SEND_TO_STACK:
             addressToAdd = memory.load(ip+1);
             var numberToModify = memory.load(ip+2);
-            finalValue = checkInput(numberToModify);
-            finalValue += memory[checkInput(addressToAdd)];
-            memory += finalValue;
+            value = processResult(checkInput(numberToModify));
+            value += memory[processResult(checkInput(addressToAdd))];
+            memory += value;
             ip+=3;
             break;
         case opcodes.SUB_ADDRESS_FROM_NUMBER_SEND_TO_STACK:
             addressToSub = memory.load(ip+1);
             numberToModify = memory.load(ip+1);
-            finalValue = checkInput(numberToModify);
-            finalValue -= checkInput(addressToSub);
-            memory += finalValue;
+            value = processResult(checkInput(numberToModify));
+            value -= processResult(checkInput(addressToSub));
+            memory += value;
             ip+=3;
             break;
         case opcodes.INCREMENT_ADDRESS:
             addressToModify = memory.load(ip+1);
-            finalValue = memory[checkInput(addressToModify)];
-            memory[finalValue]++;
+            value = memory[processResult(checkInput(addressToModify))];
+            memory[value]++;
             ip+=2;
             break;
         case opcodes.INCREMENT_ADDRESS:
             addressToModify = memory.load(ip+1);
-            finalValue = memory[checkInput(addressToModify)];
+            value = memory[processResult(checkInput(addressToModify))];
             memory[finalValue]--;
             ip+=2;
             break;
@@ -169,27 +166,65 @@ function step() { // this simulates the CPU, as long as it doesn't return an err
             throw 'invalid opcode' + instr;
     }
 
+function processResult(value) {
+        if (value >= 256) {
+            value % 256
+        }
+        else if (value < 0) {
+            value = 255 - (-value) % 256;
+        }
+
+        return value
+}
+
 function run(code) {
     var code = [];
-    var opCode;
+    var opcode
     var lines = code.split('\n');
 
-    for(var i=0,l=lines.length;i<l;i++) {
+    function readOperand(operand) {
+        if(operand.startsWith('$')) {
+            operand.type = "address";
+        }
+        else {
+            operand.type = "number"
+        }
+        return operand.type;
+    }
+
+    for(var i=0, l=lines.length;i<l;i++) {
         var match = regex.exec(lines[i]);
 
-        if (match[GROUP_OPCODE]) {
+        if(match[GROUP_OPCODE]) {
             var instr = match[GROUP_OPCODE].toUpperCase();
             switch (instr) {
                 case 'ADD':
-                    var input = memory.load(ip+1);
-                    var op1 = input.match[GROUP_OPERAND1];
-                    var inputTwo = memory.load(ip+2);
-                    var op2 = inputTwo.match[GROUP_OPERAND2];
+                    var op1 = readOperand(match[GROUP_OPERAND1]);
+                    var op2 = readOperand(match[GROUP_OPERAND2]);
+
+                    if (op1.type === "address" && op2.type === "address")
+                        opcode = opcodes.GET_ADDRESS_PLUS_ADDRESS_VALUE;
+
+                    else if (op1.type === "number" && op2.type === "address")
+                        opcode = opcodes.ADD_NUM_TO_ADDRESS;
 
 
+                    else if (op1.type === "address" && op2.type === "number")
+                        opcode = opcodes.ADD_ADDRESS_TO_NUMBER_SEND_TO_STACK;
+
+
+                    else if (op1.type === "number" && op2.type === "number")
+                        opcode = opcodes.MOV_ADD_TO_STACK;
+
+                    else
+                        throw "ADD does not support these operands.";
+
+                    code.push(opcode, op1.value, op2.value)
+
+                    break;
+                }
             }
         }
     }
-}
 
 }
