@@ -116,6 +116,21 @@ function step() {
             address += checkInput(inputNumber);
             ip+=3;
             break;
+        case opcodes.SUB_NUM_FROM_ADDRESS:
+            inputNumber = memory.load(ip+1);
+            toAddress = memory.load(ip+2);
+            address = memory[checkInput(toAddress)];
+            address -= checkInput(inputNumber);
+            ip+=3;
+            break;
+        case opcodes.GET_ADDRESS_PLUS_ADDRESS:
+            var addressToModify = memory.load(ip+1);
+            var addressToAdd = memory.load(ip+2);
+            var finalValue = memory[checkInput(addressToModify)];
+            memory[finalValue] += memory[checkInput(addressToAdd)];
+            ip+=3;
+            break;
+            
         default:
             throw 'invalid opcode' + instr;
     }
