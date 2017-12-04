@@ -67,7 +67,7 @@ function checkInput(input) {
     }
 }
 
-function step() {
+function step() { // this simulates the CPU, as long as it doesn't return an error, in which the sim ends.
     if (er) {
         throw "ERROR. RESET CPU TO CONTINUE.";
     }
@@ -82,31 +82,31 @@ function step() {
             var value = checkInput(input);
             var valueTwo = checkInput(inputTwo);
             //moving value to the stack
-            stack += value;
-            stack += valueTwo;
+            memory += value;
+            memory += valueTwo;
             //updating instruction pointer
             ip += ip+3;
             break;
         case opcodes.DELETE_NUM_FROM_STACK:
-            stack.pop();
+            memory.pop();
             ip++;
             break;
         case opcodes.DUPLICATE_LAST_ENTRY:
-            stack += stack[stack.length-1];
+            memory += memory[memory.length-1];
             ip++;
             break;
         case opcodes.MOV_ADD_TO_STACK:
             var a = memory.load(ip+1);
             var b = memory.load(ip+2);
             value = checkInput(a+b);
-            stack += value;
+            memory += value;
             ip+=ip+3;
             break;
         case opcodes.MOV_SUB_TO_STACK:
             a = memory.load(ip+1);
             b = memory.load(ip+2);
             value = checkInput(a-b);
-            stack += value;
+            memory += value;
             ip+=ip+3;
             break;
         case opcodes.ADD_NUM_TO_ADDRESS:
@@ -123,7 +123,7 @@ function step() {
             address -= checkInput(inputNumber);
             ip+=3;
             break;
-        case opcodes.GET_ADDRESS_PLUS_ADDRESS: // this will add the addressToAdd value to the ADDRESS specified at the addressToModify
+        case opcodes.GET_ADDRESS_PLUS_ADDRESS: // this will add the addressToAdd value to the ADDRESS specified at the 1st operand
             var addressToModify = memory.load(ip+1);
             var addressToAdd = memory.load(ip+2);
             var finalValue = memory[checkInput(addressToModify)];
@@ -137,7 +137,34 @@ function step() {
             memory[finalValue] -= memory[checkInput(addressToSub)];
             ip+=3;
             break;
-        
+        case opcodes.ADD_ADDRESS_TO_NUMBER_SEND_TO_STACK:
+            addressToAdd = memory.load(ip+1);
+            var numberToModify = memory.load(ip+2);
+            finalValue = checkInput(numberToModify);
+            finalValue += memory[checkInput(addressToAdd)];
+            memory += finalValue;
+            ip+=3;
+            break;
+        case opcodes.SUB_ADDRESS_FROM_NUMBER_SEND_TO_STACK:
+            addressToSub = memory.load(ip+1);
+            numberToModify = memory.load(ip+1);
+            finalValue = checkInput(numberToModify);
+            finalValue -= checkInput(addressToSub);
+            memory += finalValue;
+            ip+=3;
+            break;
+        case opcodes.INCREMENT_ADDRESS:
+            addressToModify = memory.load(ip+1);
+            finalValue = memory[checkInput(addressToModify)];
+            memory[finalValue]++;
+            ip+=2;
+            break;
+        case opcodes.INCREMENT_ADDRESS:
+            addressToModify = memory.load(ip+1);
+            finalValue = memory[checkInput(addressToModify)];
+            memory[finalValue]--;
+            ip+=2;
+            break;
         default:
             throw 'invalid opcode' + instr;
     }
