@@ -219,7 +219,7 @@ function run(code) {
                     else
                         throw "ADD does not support these operands.";
 
-                    code.push(opcode, op1.value, op2.value)
+                    code.push(opcode, op1.value, op2.value);
 
                     break;
                 }
