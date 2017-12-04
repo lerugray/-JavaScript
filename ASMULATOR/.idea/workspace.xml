@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6f184615-c6c6-4981-9970-380e94c23af2" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rayStackMachine/src/emulator/stackmachine.js" afterPath="$PROJECT_DIR$/rayStackMachine/src/emulator/stackmachine.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -23,7 +22,7 @@
       <file leaf-file-name="stackmachine.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/rayStackMachine/src/emulator/stackmachine.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="341">
+            <state relative-caret-position="358">
               <caret line="221" column="60" lean-forward="false" selection-start-line="221" selection-start-column="60" selection-end-line="221" selection-end-column="60" />
               <folding />
             </state>
@@ -156,12 +155,12 @@
       <updated>1512256779713</updated>
       <workItem from="1512256782234" duration="35456000" />
       <workItem from="1512340194567" duration="7802000" />
-      <workItem from="1512385168493" duration="21021000" />
+      <workItem from="1512385168493" duration="21096000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="64279000" />
+    <option name="totallyTimeSpent" value="64354000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="615" y="44" width="718" height="696" extended-state="0" />
@@ -250,7 +249,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/rayStackMachine/src/emulator/stackmachine.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="341">
+        <state relative-caret-position="358">
           <caret line="221" column="60" lean-forward="false" selection-start-line="221" selection-start-column="60" selection-end-line="221" selection-end-column="60" />
           <folding />
         </state>
