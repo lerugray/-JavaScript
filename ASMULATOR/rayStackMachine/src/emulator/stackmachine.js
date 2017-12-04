@@ -109,6 +109,13 @@ function step() {
             stack += value;
             ip+=ip+3;
             break;
+        case opcodes.ADD_NUM_TO_ADDRESS:
+            var inputNumber = memory.load(ip+1);
+            var toAddress = memory.load(ip+2);
+            address = memory[checkInput(toAddress)];
+            address += checkInput(inputNumber);
+            ip+=3;
+            break;
         default:
             throw 'invalid opcode' + instr;
     }
