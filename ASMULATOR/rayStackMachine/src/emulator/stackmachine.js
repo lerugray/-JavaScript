@@ -123,14 +123,21 @@ function step() {
             address -= checkInput(inputNumber);
             ip+=3;
             break;
-        case opcodes.GET_ADDRESS_PLUS_ADDRESS:
+        case opcodes.GET_ADDRESS_PLUS_ADDRESS: // this will add the addressToAdd value to the ADDRESS specified at the addressToModify
             var addressToModify = memory.load(ip+1);
             var addressToAdd = memory.load(ip+2);
             var finalValue = memory[checkInput(addressToModify)];
             memory[finalValue] += memory[checkInput(addressToAdd)];
             ip+=3;
             break;
-            
+        case opcodes.GET_ADDRESS_MINUS_ADDRESS: // this will do the same as above but with subtraction
+            addressToModify = memory.load(ip+1);
+            var addressToSub = memory.load(ip+2);
+            finalValue =  memory[checkInput(addressToModify)];
+            memory[finalValue] -= memory[checkInput(addressToSub)];
+            ip+=3;
+            break;
+        
         default:
             throw 'invalid opcode' + instr;
     }
