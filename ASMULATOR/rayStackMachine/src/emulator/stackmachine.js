@@ -3,7 +3,7 @@
 var opcodes = {
     NONE: 0,
     MOV_NUM_TO_STACK: 1,
-    DELETE_NUM_FROM_STACK: 2,
+    DELETE_ADDRESS_FROM_STACK: 2,
     MOV_SUB_TO_STACK: 3,
     MOV_ADD_TO_STACK: 4,
     DUPLICATE_LAST_ENTRY: 5,
@@ -84,12 +84,12 @@ function step() { // this simulates the CPU, as long as it doesn't return an err
             memory += value;
             ip += ip+3;
             break;
-        case opcodes.DELETE_NUM_FROM_STACK:
+        case opcodes.DELETE_ADDRESS_FROM_STACK:
             memory.pop();
             ip++;
             break;
         case opcodes.DUPLICATE_LAST_ENTRY:
-            memory += memory[memory.length-1];
+            memory[ip] += memory[memory.length-1];
             ip++;
             break;
         case opcodes.MOV_ADD_TO_STACK:
@@ -97,14 +97,14 @@ function step() { // this simulates the CPU, as long as it doesn't return an err
             var b = memory.load(ip+2);
             value = processResult(checkInput(a+b));
             memory += value;
-            ip+=ip+3;
+            ip+=3;
             break;
         case opcodes.MOV_SUB_TO_STACK:
             a = memory.load(ip+1);
             b = memory.load(ip+2);
             value = processResult(checkInput(a-b));
             memory += value;
-            ip+=ip+3;
+            ip+=3;
             break;
         case opcodes.ADD_NUM_TO_ADDRESS:
             var inputNumber = memory.load(ip+1);
@@ -130,7 +130,7 @@ function step() { // this simulates the CPU, as long as it doesn't return an err
         case opcodes.GET_ADDRESS_MINUS_ADDRESS_VALUE: // this will do the same as above but with subtraction
             addressToModify = memory.load(ip+1);
             var addressToSub = memory.load(ip+2);
-            value =  memory[processResult(checkInput(addressToModify))];
+            value = memory[processResult(checkInput(addressToModify))];
             memory[value] -= memory[processResult(checkInput(addressToSub))];
             ip+=3;
             break;
@@ -167,8 +167,12 @@ function step() { // this simulates the CPU, as long as it doesn't return an err
     }
 
 function processResult(value) {
+
+        var overflow = false;
+
         if (value >= 256) {
-            value % 256
+            overflow = true;
+            value % 256;
         }
         else if (value < 0) {
             value = 255 - (-value) % 256;
@@ -179,7 +183,7 @@ function processResult(value) {
 
 function run(code) {
     var code = [];
-    var opcode
+    var opcode;
     var lines = code.split('\n');
 
     function readOperand(operand) {
@@ -220,7 +224,41 @@ function run(code) {
                         throw "ADD does not support these operands.";
 
                     code.push(opcode, op1.value, op2.value);
+
                     break;
+
+                case 'SUB':
+                    op1 = readOperand(match[GROUP_OPERAND1]);
+                    op2 = readOperand(match[GROUP_OPERAND2]);
+
+
+                    if (op1.type === "address" && op2.type === "address")
+                        opcode = opcodes.GET_ADDRESS_MINUS_ADDRESS_VALUE;
+
+                    else if (op1.type === "number" && op2.type === "address")
+                        opcode = opcodes.SUB_NUM_FROM_ADDRESS;
+
+                    else if (op1.type === "address" && op2.type === "number")
+                        opcode = opcodes.SUB_ADDRESS_FROM_NUMBER_SEND_TO_STACK;
+
+                    else if (op1.type === "number" && op2.type === "number")
+                        opcode = opcodes.MOV_SUB_TO_STACK;
+
+                    else
+                        throw "SUB does not support these operands.";
+
+                    code.push(opcode, op1.value, op2.value);
+
+                    break;
+
+                case 'DUP':
+                    opcode = opcodes.DUPLICATE_LAST_ENTRY
+                    code.push(opcode);
+                    break;
+
+                case 'DEL':
+                    opcode = opcodes.DELETE_ADDRESS_FROM_STACK
+
                 }
             }
         }
